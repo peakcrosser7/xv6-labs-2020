@@ -19,3 +19,5 @@ user/usys.S
 myapi.key
 *-handin.tar.gz
 xv6.out*
+.vagrant/
+submissions/
