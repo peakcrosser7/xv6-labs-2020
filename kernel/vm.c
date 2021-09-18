@@ -121,18 +121,25 @@ kvmmap(uint64 va, uint64 pa, uint64 sz, int perm)
     panic("kvmmap");
 }
 
+// lab3-2
+void uvmmap(pagetable_t pagetable, uint64 va, uint64 pa, uint64 sz, int perm) {
+    if(mappages(pagetable, va, sz, pa, perm) != 0) {
+        panic("uvmmap");
+    }
+}
+
 // translate a kernel virtual address to
 // a physical address. only needed for
 // addresses on the stack.
 // assumes va is page aligned.
 uint64
-kvmpa(uint64 va)
+kvmpa(pagetable_t kpagetable, uint64 va)    // lab3-2
 {
   uint64 off = va % PGSIZE;
   pte_t *pte;
   uint64 pa;
   
-  pte = walk(kernel_pagetable, va, 0);
+  pte = walk(kpagetable, va, 0);    // lab3-2
   if(pte == 0)
     panic("kvmpa");
   if((*pte & PTE_V) == 0)
@@ -439,4 +446,32 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   } else {
     return -1;
   }
+}
+
+// lab3-1
+void vmprinthelper(pagetable_t pagetable, int level) {
+    for (int i = 0; i < 512; ++i) {
+        pte_t pte = pagetable[i];
+        if (pte & PTE_V) {
+            switch(level)
+            {
+                case 3:
+                    printf(".. ");
+                case 2:
+                    printf(".. ");
+                case 1:
+                    printf("..%d: pte %p pa %p\n", i, pte, PTE2PA(pte));
+            }
+            pagetable_t child = (pagetable_t) PTE2PA(pte);
+            if ((pte & (PTE_R | PTE_W | PTE_X)) == 0) {
+                vmprinthelper(child, level + 1);
+            }
+        }
+    }
+}
+
+// print page tables lab3-1
+void vmprint(pagetable_t pagetable) {
+    printf("page table %p\n", pagetable);
+    vmprinthelper(pagetable,1);
 }
