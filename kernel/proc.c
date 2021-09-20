@@ -188,7 +188,7 @@ pagetable_t proc_kpagetable(struct proc *p) {
 
     uvmmap(kpagetable, UART0, UART0, PGSIZE, PTE_R | PTE_W);
     uvmmap(kpagetable, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);
-    uvmmap(kpagetable, CLINT, CLINT, 0x10000, PTE_R | PTE_W);
+//    uvmmap(kpagetable, CLINT, CLINT, 0x10000, PTE_R | PTE_W);     // lab3-3
     uvmmap(kpagetable, PLIC, PLIC, 0x400000, PTE_R | PTE_W);
     uvmmap(kpagetable, KERNBASE, KERNBASE, (uint64)etext-KERNBASE, PTE_R | PTE_X);
     uvmmap(kpagetable, (uint64)etext, (uint64)etext, PHYSTOP-(uint64)etext, PTE_R | PTE_W);
@@ -287,7 +287,8 @@ userinit(void)
   // and data into it.
   uvminit(p->pagetable, initcode, sizeof(initcode));
   p->sz = PGSIZE;
-
+  // init kernel pagetable - lab3-3
+  u2kvmcopy(p->pagetable, p->kpagetable, 0, p->sz);
   // prepare for the very first "return" from kernel to user.
   p->trapframe->epc = 0;      // user program counter
   p->trapframe->sp = PGSIZE;  // user stack pointer
@@ -310,11 +311,24 @@ growproc(int n)
 
   sz = p->sz;
   if(n > 0){
+    // prevent process from growing to PLIC address - lab3-3
+    if(sz + n > PLIC){
+      return -1;
+    }
     if((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0) {
+      return -1;
+    }
+    // copy the increase user page table to kernel page table - lab3-3
+    if(u2kvmcopy(p->pagetable, p->kpagetable, p->sz, sz) < 0){
       return -1;
     }
   } else if(n < 0){
     sz = uvmdealloc(p->pagetable, sz, sz + n);
+    // free process's kernel page table without free physical memory - lab3-3
+    if (PGROUNDUP(sz) < PGROUNDUP(p->sz)) {
+      uvmunmap(p->kpagetable, PGROUNDUP(sz),
+               (PGROUNDUP(p->sz) - PGROUNDUP(sz)) / PGSIZE, 0);
+    }
   }
   p->sz = sz;
   return 0;
@@ -341,6 +355,12 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
+  // copy user page table to kernel page table - lab3-3
+  if(u2kvmcopy(np->pagetable, np->kpagetable, 0, np->sz) < 0) {
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }
 
   np->parent = p;
 

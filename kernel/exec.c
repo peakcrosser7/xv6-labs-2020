@@ -116,6 +116,12 @@ exec(char *path, char **argv)
   p->trapframe->sp = sp; // initial stack pointer
   proc_freepagetable(oldpagetable, oldsz);
 
+  // unmap old kernel page table, and copy the new one - lab3-3
+  uvmunmap(p->kpagetable, 0, PGROUNDUP(oldsz)/PGSIZE, 0);
+  if(u2kvmcopy(p->pagetable, p->kpagetable, 0, p->sz) < 0){
+      goto bad;
+  }
+
   // print page table - lab3-1
   if (p->pid == 1) {
     vmprint(p->pagetable);
