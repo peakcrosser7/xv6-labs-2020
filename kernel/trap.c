@@ -76,6 +76,19 @@ usertrap(void)
   if(p->killed)
     exit(-1);
 
+  // lab4-3
+  if(which_dev == 2){   // timer interrupt
+    // increase the passed ticks
+    if(p->interval != 0 && ++p->passedticks == p->interval){
+      // alloc a page of memory for trapframecopy
+      if((p->trapframecopy = (struct trapframe *)kalloc()) == 0){
+        panic("kalloc");
+      }
+      memmove(p->trapframecopy,p->trapframe,sizeof(struct trapframe));   // copy trapframe
+//      p->trapframecopy = *(p->trapframe);
+      p->trapframe->epc = p->handler;   // execute handler() when return to user space
+    }
+  }
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2)
     yield();
