@@ -43,12 +43,22 @@ sys_sbrk(void)
 {
   int addr;
   int n;
+  struct proc *p;
 
   if(argint(0, &n) < 0)
     return -1;
-  addr = myproc()->sz;
+  p = myproc();
+  addr = p->sz;
   // lab5-1
-  myproc()->sz += n;    // increase size but not allocate memory
+  if(n >= 0 && addr + n >= addr){
+    p->sz += n;    // increase size but not allocate memory
+  } else if(n < 0 && addr + n >= PGROUNDUP(p->trapframe->sp)){
+    // handle negative n and addr must be above user stack - lab5-3
+    p->sz = uvmdealloc(p->pagetable, addr, addr + n);
+  } else {
+    return -1;
+  }
+
 //  if(growproc(n) < 0)
 //    return -1;
   return addr;
