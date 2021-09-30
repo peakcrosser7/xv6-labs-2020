@@ -65,6 +65,20 @@ usertrap(void)
     intr_on();
 
     syscall();
+  } else if (r_scause() == 13 || r_scause() == 15) {    // lab5-2
+    char *pa;
+    if ((pa = kalloc()) != 0) {
+      uint64 va = PGROUNDDOWN(r_stval());   // need!
+      memset(pa, 0, PGSIZE);
+      if (mappages(p->pagetable, va, PGSIZE, (uint64) pa, PTE_W | PTE_R | PTE_U) != 0) {
+        kfree(pa);
+        printf("usertrap(): mappages() failed\n");
+        p->killed = 1;
+      }
+    } else {
+      printf("usertrap(): kalloc() failed\n");
+      p->killed = 1;
+    }
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
