@@ -129,7 +129,7 @@ found:
   p->interval = 0;      // lab4-3
   p->handler = 0;       // lab4-3
   p->passedticks = 0;   // lab4-3
-
+  p->trapframecopy = 0; // lab4-3
   return p;
 }
 

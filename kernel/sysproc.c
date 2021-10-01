@@ -118,9 +118,12 @@ uint64 sys_sigalarm(void) {
 // lab4-3
 uint64 sys_sigreturn(void) {
     struct proc* p = myproc();
+    // trapframecopy must have the copy of trapframe
+    if(p->trapframecopy != p->trapframe + 512) {
+        return -1;
+    }
     memmove(p->trapframe, p->trapframecopy, sizeof(struct trapframe));   // restore the trapframe
-//    *(p->trapframe) = p->trapframecopy;
-    kfree(p->trapframecopy);    // free the memory
     p->passedticks = 0;     // prevent re-entrant
+    p->trapframecopy = 0;
     return 0;
 }

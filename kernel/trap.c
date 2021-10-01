@@ -80,12 +80,9 @@ usertrap(void)
   if(which_dev == 2){   // timer interrupt
     // increase the passed ticks
     if(p->interval != 0 && ++p->passedticks == p->interval){
-      // alloc a page of memory for trapframecopy
-      if((p->trapframecopy = (struct trapframe *)kalloc()) == 0){
-        panic("kalloc");
-      }
-      memmove(p->trapframecopy,p->trapframe,sizeof(struct trapframe));   // copy trapframe
-//      p->trapframecopy = *(p->trapframe);
+      // trapframecopy use the page of trapframe
+      p->trapframecopy = p->trapframe + 512;
+      memmove(p->trapframecopy, p->trapframe, sizeof(struct trapframe));   // copy trapframe
       p->trapframe->epc = p->handler;   // execute handler() when return to user space
     }
   }
