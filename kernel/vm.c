@@ -130,6 +130,7 @@ uint64 walkcowaddr(pagetable_t pagetable, uint64 va) {
     return 0;
   pa = PTE2PA(*pte);
   if ((*pte & PTE_W) == 0) {
+    // pte without COW flag cannot allocate page
     if ((*pte & PTE_COW) == 0) {
         return 0;
     }
@@ -138,12 +139,11 @@ uint64 walkcowaddr(pagetable_t pagetable, uint64 va) {
     }
     memmove(mem, (void*)pa, PGSIZE);  // copy contents
     flags = (PTE_FLAGS(*pte) & (~PTE_COW)) | PTE_W;
-    uvmunmap(pagetable, PGROUNDDOWN(va),1,1);
+    uvmunmap(pagetable, PGROUNDDOWN(va), 1, 1);
     if (mappages(pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, flags) != 0) {
       kfree(mem);
       return 0;
     }
-//    kfree((void*)pa);
     return (uint64)mem;
   }
   return pa;
@@ -400,7 +400,7 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
-    pa0 = walkcowaddr(pagetable, va0);
+    pa0 = walkcowaddr(pagetable, va0);  // with COW - lab6
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (dstva - va0);

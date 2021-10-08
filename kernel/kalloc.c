@@ -56,7 +56,7 @@ kfree(void *pa)
   // decrease the page's reference count
   // and not place the page back if its reference count isn't 0
   // - lab6
-  if(decrefcnt((uint64)pa)){
+  if (decrefcnt((uint64) pa)) {
     return;
   }
 
@@ -69,8 +69,6 @@ kfree(void *pa)
   r->next = kmem.freelist;
   kmem.freelist = r;
   release(&kmem.lock);
-
-  refcnt2zero((uint64)pa);    // set reference count to 0 - lab6
 }
 
 // Allocate one 4096-byte page of physical memory.

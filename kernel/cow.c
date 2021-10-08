@@ -8,31 +8,30 @@
 
 // COW reference count
 struct {
-    uint8 ref_cnt;
-    struct spinlock lock;
-} cows[PHYSTOP >> 12];
+  uint8 ref_cnt;
+  struct spinlock lock;
+} cows[(PHYSTOP - KERNBASE) >> 12];
 
 // increase the reference count
 void increfcnt(uint64 pa) {
-    pa >>= 12;
-    acquire(&cows[pa].lock);
-    ++cows[pa].ref_cnt;
-    release(&cows[pa].lock);
+  if (pa < KERNBASE) {
+    return;
+  }
+  pa = (pa - KERNBASE) >> 12;
+  acquire(&cows[pa].lock);
+  ++cows[pa].ref_cnt;
+  release(&cows[pa].lock);
 }
 
 // decrease the reference count
 uint8 decrefcnt(uint64 pa) {
-    uint8 ret;
-    pa >>= 12;
-    acquire(&cows[pa].lock);
-    ret = --cows[pa].ref_cnt;
-    release(&cows[pa].lock);
-    return ret;
-}
-
-void refcnt2zero(uint64 pa) {
-    pa >>= 12;
-    acquire(&cows[pa].lock);
-    cows[pa].ref_cnt = 0;
-    release(&cows[pa].lock);
+  uint8 ret;
+  if (pa < KERNBASE) {
+    return 0;
+  }
+  pa = (pa - KERNBASE) >> 12;
+  acquire(&cows[pa].lock);
+  ret = --cows[pa].ref_cnt;
+  release(&cows[pa].lock);
+  return ret;
 }
