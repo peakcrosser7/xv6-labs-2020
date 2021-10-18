@@ -66,7 +66,7 @@ acquire(struct spinlock *lk)
     panic("acquire");
 
 #ifdef LAB_LOCK
-    __sync_fetch_and_add(&(lk->n), 1);
+    __sync_fetch_and_add(&(lk->n), 1);  // the count to acquire the lock
 #endif      
 
   // On RISC-V, sync_lock_test_and_set turns into an atomic swap:
@@ -75,7 +75,7 @@ acquire(struct spinlock *lk)
   //   amoswap.w.aq a5, a5, (s1)
   while(__sync_lock_test_and_set(&lk->locked, 1) != 0) {
 #ifdef LAB_LOCK
-    __sync_fetch_and_add(&(lk->nts), 1);
+    __sync_fetch_and_add(&(lk->nts), 1);    // the number of times the loop failed to set the lock
 #else
    ;
 #endif
