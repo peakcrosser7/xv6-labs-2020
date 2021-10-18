@@ -77,32 +77,32 @@ kfree(void *pa)
 
 // steal half page from other cpu's freelist - lab8-1
 struct run *steal(int cpu_id) {
-    int i;
-    int c = cpu_id;
-    struct run *fast, *slow, *head;
-    for (i = 1; i < NCPU; ++i) {
-        if (++c == NCPU) {
-            c = 0;
-        }
-        acquire(&kmems[c].lock);
-        if (kmems[c].freelist) {
-            slow = head = kmems[c].freelist;
-            fast = slow->next;
-            while (fast) {
-                fast = fast->next;
-                if (fast) {
-                    slow = slow->next;
-                    fast = fast->next;
-                }
-            }
-            kmems[c].freelist = slow->next;
-            release(&kmems[c].lock);
-            slow->next = 0;
-            return head;
-        }
-        release(&kmems[c].lock);
+  int i;
+  int c = cpu_id;
+  struct run *fast, *slow, *head;
+  for (i = 1; i < NCPU; ++i) {
+    if (++c == NCPU) {
+      c = 0;
     }
-    return 0;
+    acquire(&kmems[c].lock);
+    if (kmems[c].freelist) {
+      slow = head = kmems[c].freelist;
+      fast = slow->next;
+      while (fast) {
+        fast = fast->next;
+        if (fast) {
+          slow = slow->next;
+          fast = fast->next;
+        }
+      }
+      kmems[c].freelist = slow->next;
+      release(&kmems[c].lock);
+      slow->next = 0;
+      return head;
+    }
+    release(&kmems[c].lock);
+  }
+  return 0;
 }
 
 // Allocate one 4096-byte page of physical memory.
