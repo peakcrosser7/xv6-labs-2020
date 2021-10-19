@@ -80,6 +80,9 @@ struct run *steal(int cpu_id) {
   int i;
   int c = cpu_id;
   struct run *fast, *slow, *head;
+  if(cpu_id != cpuid()) {
+    panic("steal");
+  }
   for (i = 1; i < NCPU; ++i) {
     if (++c == NCPU) {
       c = 0;
