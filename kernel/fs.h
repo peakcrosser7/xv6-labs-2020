@@ -59,3 +59,5 @@ struct dirent {
   char name[DIRSIZ];
 };
 
+// the max depth of symlinks - lab9-2
+#define NSYMLINK 10

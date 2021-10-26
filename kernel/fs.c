@@ -680,21 +680,24 @@ namex(char *path, int nameiparent, char *name)
   struct inode *ip, *next;
 
   if(*path == '/')
-    ip = iget(ROOTDEV, ROOTINO);
+    ip = iget(ROOTDEV, ROOTINO);    // get the root path's inode
   else
-    ip = idup(myproc()->cwd);
-
+    ip = idup(myproc()->cwd);   // get the current directory's inode
+  // get the next path into name and return the left path
+  //only path(in args)=="" skipelem() return 0
   while((path = skipelem(path, name)) != 0){
     ilock(ip);
-    if(ip->type != T_DIR){
+    if(ip->type != T_DIR){  // current inode should be directory's
       iunlockput(ip);
       return 0;
     }
+    // return the parent inode
     if(nameiparent && *path == '\0'){
       // Stop one level early.
       iunlock(ip);
       return ip;
     }
+    // get the name's inode
     if((next = dirlookup(ip, name, 0)) == 0){
       iunlockput(ip);
       return 0;

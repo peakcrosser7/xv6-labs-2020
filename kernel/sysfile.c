@@ -126,25 +126,26 @@ sys_link(void)
     return -1;
 
   begin_op();
-  if((ip = namei(old)) == 0){
+  if((ip = namei(old)) == 0){   // get the old path inode
     end_op();
     return -1;
   }
 
   ilock(ip);
-  if(ip->type == T_DIR){
+  if(ip->type == T_DIR){    // cannot link to a directory
     iunlockput(ip);
     end_op();
     return -1;
   }
 
-  ip->nlink++;
-  iupdate(ip);
+  ip->nlink++;  // increase the link number
+  iupdate(ip);  // update the inode to the disk
   iunlock(ip);
-
+  // return the new path's parent inode
   if((dp = nameiparent(new, name)) == 0)
     goto bad;
   ilock(dp);
+  // write the new entry to new's parent directory's inode
   if(dp->dev != ip->dev || dirlink(dp, name, ip->inum) < 0){
     iunlockput(dp);
     goto bad;
@@ -283,6 +284,44 @@ create(char *path, short type, short major, short minor)
   return ip;
 }
 
+// recursively follow the symlinks - lab9-2
+// Caller must hold ip->lock
+// and when function returned, it holds ip->lock of returned ip
+static struct inode* follow_symlink(struct inode* ip) {
+  uint inums[NSYMLINK];
+  int i, j;
+  char target[MAXPATH];
+
+  for(i = 0; i < NSYMLINK; ++i) {
+    inums[i] = ip->inum;
+    if(readi(ip, 0, (uint64)target, 0, MAXPATH) <= 0) {
+      iunlockput(ip);
+      printf("open_symlink: open symlink failed\n");
+      return 0;
+    }
+    iunlockput(ip);
+
+    if((ip = namei(target)) == 0) {
+      printf("open_symlink: path \"%s\" is not exist\n", target);
+      return 0;
+    }
+    for(j = 0; j <= i; ++j) {
+      if(ip->inum == inums[j]) {
+        printf("open_symlink: links form a cycle\n");
+        return 0;
+      }
+    }
+    ilock(ip);
+    if(ip->type != T_SYMLINK) {
+      return ip;
+    }
+  }
+
+  iunlockput(ip);
+  printf("open_symlink: the depth of links reaches the limit\n");
+  return 0;
+}
+
 uint64
 sys_open(void)
 {
@@ -320,6 +359,14 @@ sys_open(void)
     iunlockput(ip);
     end_op();
     return -1;
+  }
+
+  // handle the symlink - lab9-2
+  if(ip->type == T_SYMLINK && (omode & O_NOFOLLOW) == 0) {
+    if((ip = follow_symlink(ip)) == 0) {
+      end_op();
+      return -1;
+    }
   }
 
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
@@ -482,5 +529,34 @@ sys_pipe(void)
     fileclose(wf);
     return -1;
   }
+  return 0;
+}
+
+// lab9-2
+uint64 sys_symlink(void) {
+  char target[MAXPATH], path[MAXPATH];
+  struct inode *ip;
+  int n;
+
+  if ((n = argstr(0, target, MAXPATH)) < 0
+    || argstr(1, path, MAXPATH) < 0) {
+    return -1;
+  }
+
+  begin_op();
+
+  if((ip = create(path, T_SYMLINK, 0, 0)) == 0) {
+    end_op();
+    return -1;
+  }
+
+  if(writei(ip, 0, (uint64)target, 0, n) != n) {
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+
+  iunlockput(ip);
+  end_op();
   return 0;
 }
