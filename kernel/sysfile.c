@@ -294,6 +294,7 @@ static struct inode* follow_symlink(struct inode* ip) {
 
   for(i = 0; i < NSYMLINK; ++i) {
     inums[i] = ip->inum;
+    // read the target path from symlink file
     if(readi(ip, 0, (uint64)target, 0, MAXPATH) <= 0) {
       iunlockput(ip);
       printf("open_symlink: open symlink failed\n");
@@ -301,6 +302,7 @@ static struct inode* follow_symlink(struct inode* ip) {
     }
     iunlockput(ip);
 
+    // get the inode of target path
     if((ip = namei(target)) == 0) {
       printf("open_symlink: path \"%s\" is not exist\n", target);
       return 0;
@@ -544,12 +546,12 @@ uint64 sys_symlink(void) {
   }
 
   begin_op();
-
+  // create the symlink's inode
   if((ip = create(path, T_SYMLINK, 0, 0)) == 0) {
     end_op();
     return -1;
   }
-
+  // write the target path to the inode
   if(writei(ip, 0, (uint64)target, 0, n) != n) {
     iunlockput(ip);
     end_op();
