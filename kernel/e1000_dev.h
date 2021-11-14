@@ -3,7 +3,7 @@
 // from the Intel 82540EP/EM &c manual.
 //
 
-/* Registers */
+/* Registers [13.2.2.2] */
 #define E1000_CTL      (0x00000/4)  /* Device Control Register - RW */
 #define E1000_ICR      (0x000C0/4)  /* Interrupt Cause Read - R */
 #define E1000_IMS      (0x000D0/4)  /* Interrupt Mask Set - RW */
@@ -24,13 +24,13 @@
 #define E1000_MTA      (0x05200/4)  /* Multicast Table Array - RW Array */
 #define E1000_RA       (0x05400/4)  /* Receive Address - RW Array */
 
-/* Device Control */
+/* Device Control [13.4.1] */
 #define E1000_CTL_SLU     0x00000040    /* set link up */
 #define E1000_CTL_FRCSPD  0x00000800    /* force speed */
 #define E1000_CTL_FRCDPLX 0x00001000    /* force duplex */
 #define E1000_CTL_RST     0x00400000    /* full reset */
 
-/* Transmit Control */
+/* Transmit Control [13.4.33] */
 #define E1000_TCTL_RST    0x00000001    /* software reset */
 #define E1000_TCTL_EN     0x00000002    /* enable tx */
 #define E1000_TCTL_BCE    0x00000004    /* busy check enable */
@@ -45,7 +45,7 @@
 #define E1000_TCTL_NRTU   0x02000000    /* No Re-transmit on underrun */
 #define E1000_TCTL_MULR   0x10000000    /* Multiple request support */
 
-/* Receive Control */
+/* Receive Control [13.4.22] */
 #define E1000_RCTL_RST            0x00000001    /* Software reset */
 #define E1000_RCTL_EN             0x00000002    /* enable */
 #define E1000_RCTL_SBP            0x00000004    /* store bad packet */
@@ -97,6 +97,7 @@
 #define E1000_TXD_STAT_DD    0x00000001 /* Descriptor Done */
 
 // [E1000 3.3.3]
+// Transmit Descriptor Layout – Legacy Mode
 struct tx_desc
 {
   uint64 addr;
@@ -113,6 +114,7 @@ struct tx_desc
 #define E1000_RXD_STAT_EOP      0x02    /* End of Packet */
 
 // [E1000 3.2.3]
+// Receive Descriptor Layout
 struct rx_desc
 {
   uint64 addr;       /* Address of the descriptor's data buffer */
