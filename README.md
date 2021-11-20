@@ -1,8 +1,7 @@
 # xv6-labs-2020
 MIT 6.S081 2020 Labs
   
-In addition to the master branch, there are 11 code branches, such as util, syscall, pgtbl. The code for each lab is under its corresponding branch.
-  
+In addition to the master branch, there are 11 code branches, such as util, syscall, pgtbl. The code for each lab is under its corresponding branch.  
 The specific details of the lab code can be found on my blogs, the URLs are as follows (The first blog is about lab environment configuration and code debugging and testing):
 * [Lab 0: 实验配置, 调试及测试](https://blog.csdn.net/LostUnravel/article/details/120397168)
 * [Lab 1: Xv6 and Unix utilities](https://blog.csdn.net/LostUnravel/article/details/120397205)
