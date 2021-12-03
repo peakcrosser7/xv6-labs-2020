@@ -11,7 +11,7 @@ The specific details of the lab code can be found on my blogs, the URLs are as f
 * [Lab 5: xv6 lazy page allocation](https://blog.csdn.net/LostUnravel/article/details/121418421)
 * [Lab 6: Copy-on-Write Fork for xv6](https://blog.csdn.net/LostUnravel/article/details/121418548)
 * [Lab 7: Multithreading](https://blog.csdn.net/LostUnravel/article/details/121430791)
-* [Lab8: locks](https://blog.csdn.net/LostUnravel/article/details/121430900)
+* [Lab 8: locks](https://blog.csdn.net/LostUnravel/article/details/121430900)
 * [Lab 9: file system](https://blog.csdn.net/LostUnravel/article/details/121431163)
 * [Lab 10: mmap](https://blog.csdn.net/LostUnravel/article/details/121437327)
 * [Lab 11: networking](https://blog.csdn.net/LostUnravel/article/details/121437373)
